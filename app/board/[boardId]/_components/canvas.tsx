@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { nanoid } from 'nanoid'
-import { Camera, CanvasMode, CanvasState, Color, LayerType, Point } from '@/types/canvas'
+import { Camera, CanvasMode, CanvasState, Color, LayerType, Point, Side, XYWH } from '@/types/canvas'
 import Info from './info'
 import Participants from './participants'
 import Toolbar from './toolbar'
@@ -11,6 +11,7 @@ import { useCanRedo, useCanUndo, useHistory, useMutation, useOthersMapped, useSt
 import { connectionIdToColor, pointerEventToCanvasPoint } from '@/lib/utils'
 import { LiveObject } from '@liveblocks/client'
 import LayerPreview from './layer-preview'
+import SelectionBox from './selection-box'
 
 const MAX_LAYERS = 100
 
@@ -153,6 +154,19 @@ export const Canvas = ({
     canvasState.mode,
   ]);
 
+  const onResizeHandlePointerDown = useCallback((
+    corner: Side,
+    initialBounds: XYWH,
+  ) => {
+    history.pause();
+    setCanvasState({
+      mode: CanvasMode.Resizing,
+      initialBounds,
+      corner,
+    });
+  }, [history]);
+
+
   return (
     <main className='h-full w-full relative bg-neutral-100 touch-none'>
       <Info boardId={boardId} />
@@ -185,6 +199,9 @@ export const Canvas = ({
               selectionColor={layerIdsToColorSelection[layerId]}
             />
           ))}
+          <SelectionBox
+            onResizeHandlePointerDown={onResizeHandlePointerDown}
+          />
           <CursorsPresence />
         </g>
       </svg>
